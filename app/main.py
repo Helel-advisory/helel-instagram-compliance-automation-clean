@@ -82,7 +82,7 @@ def reject(content_id: int, _: str = Depends(reviewer)):
 
 
 @app.get('/media/{content_id}.png')
-def branded_media(content_id: int, _: str = Depends(reviewer)):
+def branded_media(content_id: int):
     item = next((x for x in contents if x['id'] == content_id), None)
     if not item:
         raise HTTPException(404, 'Content not found')
