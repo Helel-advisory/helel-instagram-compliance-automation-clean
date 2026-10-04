@@ -79,3 +79,55 @@ def reject(content_id: int, _: str = Depends(reviewer)):
         raise HTTPException(404, 'Content not found')
     item['status'] = 'rejected'
     return {'message': 'Rejected and held from publishing', 'content': item}
+
+
+@app.get('/media/{content_id}.png')
+def branded_media(content_id: int, _: str = Depends(reviewer)):
+    item = next((x for x in contents if x['id'] == content_id), None)
+    if not item:
+        raise HTTPException(404, 'Content not found')
+
+    import io
+    from PIL import Image, ImageDraw, ImageFont
+    from fastapi.responses import Response
+
+    image = Image.new('RGB', (1080, 1080), '#07080a')
+    draw = ImageDraw.Draw(image)
+
+    try:
+        title_font = ImageFont.truetype('DejaVuSans-Bold.ttf', 58)
+        body_font = ImageFont.truetype('DejaVuSans.ttf', 30)
+    except OSError:
+        title_font = body_font = ImageFont.load_default()
+
+    draw.rounded_rectangle(
+        (45, 45, 1035, 1035),
+        radius=32,
+        outline='#7c3aed',
+        width=5,
+    )
+    draw.text((85, 95), 'HELEL ADVISORY', fill='#d1d5db', font=title_font)
+    draw.text((85, 205), 'COMPLIANCE UPDATE', fill='#a78bfa', font=body_font)
+    draw.multiline_text(
+        (85, 350),
+        item['topic'],
+        fill='#ffffff',
+        font=title_font,
+        spacing=16,
+        width=880,
+    )
+    draw.text(
+        (85, 900),
+        'Public-source education - Review required',
+        fill='#d1d5db',
+        font=body_font,
+    )
+
+    output = io.BytesIO()
+    image.save(output, format='PNG', optimize=True)
+
+    return Response(
+        output.getvalue(),
+        media_type='image/png',
+        headers={'Cache-Control': 'no-store'},
+    )
