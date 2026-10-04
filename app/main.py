@@ -114,7 +114,6 @@ def branded_media(content_id: int):
         fill='#ffffff',
         font=title_font,
         spacing=16,
-        width=880,
     )
     draw.text(
         (85, 900),
